@@ -8,7 +8,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final appwriteService = Get.put(AppwriteService());
   final startup = Get.put(SetupController());
-  await startup.setup();
+  startup.setup();
   runApp(MyApp());
 }
 
@@ -25,10 +25,18 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      initialBinding: BindingsBuilder(() {
-        Get.put(LocationController());
-      }),
-      home: Obx(() => setup.route.value),
+      home: Obx(
+        () {
+          if (setup.isLoading.value) {
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+          return setup.route.value;
+        },
+      ),
     );
   }
 }

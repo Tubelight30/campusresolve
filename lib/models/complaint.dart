@@ -1,6 +1,7 @@
 class Complaint {
   final String id;
   final String userId;
+  final String rollNo;
   final String title;
   final String description;
   final String status;
@@ -14,6 +15,7 @@ class Complaint {
   Complaint({
     required this.id,
     required this.userId,
+    required this.rollNo,
     required this.title,
     required this.description,
     required this.status,
@@ -29,6 +31,7 @@ class Complaint {
     return Complaint(
       id: map['\$id'] ?? '',
       userId: map['userId'] ?? '',
+      rollNo: map['rollNo'] ?? '',
       title: map['title'] ?? '',
       description: map['description'] ?? '',
       status: map['status'] ?? 'pending',
@@ -44,6 +47,7 @@ class Complaint {
   Map<String, dynamic> toMap() {
     return {
       'userId': userId,
+      'rollNo': rollNo,
       'title': title,
       'description': description,
       'status': status,

@@ -1,6 +1,7 @@
 import 'package:campusresolve/constants/secrets.dart';
 import 'package:campusresolve/controller/appwrite_service.dart';
 import 'package:campusresolve/controller/location_controller.dart';
+import 'package:campusresolve/controller/userprofile_controller.dart';
 import 'package:campusresolve/models/complaint.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,10 +9,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:appwrite/appwrite.dart';
 import 'dart:io';
 
+import 'package:permission_handler/permission_handler.dart';
+
 class ComplaintController extends GetxController {
   final AppwriteService appwriteService = Get.find<AppwriteService>();
   final LocationController locationController = Get.find<LocationController>();
-
+  final UserProfileController userProfileController =
+      Get.find<UserProfileController>();
   final isLoading = false.obs;
   final complaints = <Complaint>[].obs;
 
@@ -61,12 +65,27 @@ class ComplaintController extends GetxController {
       update();
 
       final user = await appwriteService.account.get();
-      final position = locationController.getCurrentLocation();
-      print(position!.latitude);
-      print(position.longitude);
+      final position = await LocationController.getCurrentLocation();
+      // print(position!.latitude);
+      // print(position.longitude);
 
+      // if (position == null) {
+      //   throw Exception('Location not available');
+      // }
       if (position == null) {
-        throw Exception('Location not available');
+        Get.snackbar(
+          'Location Required',
+          'Please enable location services and grant location permission to submit a complaint',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          duration: Duration(seconds: 3),
+          // buttonText: 'Settings',
+          onTap: (_) {
+            openAppSettings();
+          },
+        );
+        return;
       }
 
       // Upload images first
@@ -79,6 +98,7 @@ class ComplaintController extends GetxController {
         id: ID.unique(),
         userId: user.$id,
         title: titleController.text,
+        rollNo: userProfileController.loggedInUser!.rollNo,
         description: descriptionController.text,
         status: 'pending',
         photos: photoUrls,
@@ -103,7 +123,9 @@ class ComplaintController extends GetxController {
 
       clearForm();
       update();
-      fetchComplaints();
+      // fetchComplaints();
+      complaints.insert(0, complaint);
+      update();
 
       Get.snackbar(
         'Success',
@@ -113,9 +135,10 @@ class ComplaintController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
+      print(e.toString());
       Get.snackbar(
         'Error',
-        e.toString(),
+        "Failed to create complaint$e",
         backgroundColor: Colors.red,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
@@ -149,6 +172,43 @@ class ComplaintController extends GetxController {
       Get.snackbar(
         'Error',
         'Failed to fetch complaints: ${e.toString()}',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> updateComplaintStatus(
+      String complaintId, String newStatus) async {
+    try {
+      isLoading.value = true;
+
+      // Update the status field of the complaint document
+      await appwriteService.database.updateDocument(
+        databaseId: Secrets.databaseId,
+        collectionId: Secrets.complaintsCollectionId,
+        documentId: complaintId,
+        data: {
+          'status': newStatus,
+          'updatedAt': DateTime.now().toIso8601String(),
+        },
+      );
+
+      // Refresh the complaints list
+      await fetchComplaints();
+
+      Get.snackbar(
+        'Success',
+        'Complaint status updated to $newStatus',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to update complaint status: $e',
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );

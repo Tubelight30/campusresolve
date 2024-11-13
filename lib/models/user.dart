@@ -17,7 +17,7 @@ class User {
     return {
       '\$id': id,
       'email': email,
-      'name': rollNo,
+      'rollNo': rollNo,
     };
   }
 }

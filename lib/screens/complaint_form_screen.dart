@@ -11,9 +11,6 @@ class ComplaintFormScreen extends StatelessWidget {
   final LocationController locationController = Get.find<LocationController>();
   final ComplaintController complaintController =
       Get.put(ComplaintController());
-  // final TextEditingController titleController = TextEditingController();
-  // final TextEditingController descriptionController = TextEditingController();
-  // final RxList<File> selectedImages = <File>[].obs;
   final ImagePicker _picker = ImagePicker();
 
   ComplaintFormScreen({super.key});
@@ -56,16 +53,18 @@ class ComplaintFormScreen extends StatelessWidget {
               maxLines: 4,
             ),
             SizedBox(height: 16),
-            Obx(() => locationController.currentPosition.value != null
-                ? Text(
-                    'Location: ${locationController.currentPosition.value?.latitude}, '
-                    '${locationController.currentPosition.value?.longitude}',
-                    style: TextStyle(color: Colors.green),
-                  )
-                : Text(
-                    'Waiting for location...',
-                    style: TextStyle(color: Colors.red),
-                  )),
+            // Obx(
+            //   () => locationController.currentPosition.value != null
+            //       ? Text(
+            //           'Location: ${locationController.currentPosition.value?.latitude}, '
+            //           '${locationController.currentPosition.value?.longitude}',
+            //           style: TextStyle(color: Colors.green),
+            //         )
+            //       : Text(
+            //           'Waiting for location...',
+            //           style: TextStyle(color: Colors.red),
+            //         ),
+            // ),
             SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: _pickImage,
@@ -111,38 +110,89 @@ class ComplaintFormScreen extends StatelessWidget {
                     ),
                   )),
             SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () async {
-                // This will be handled by ComplaintController
-                if (locationController.currentPosition.value == null) {
-                  Get.snackbar(
-                    'Location Required',
-                    'Please wait for location data',
-                    backgroundColor: Colors.red,
-                    colorText: Colors.white,
-                    snackPosition: SnackPosition.BOTTOM,
-                  );
-                  return;
-                }
-                if (complaintController.titleController.text.isEmpty ||
-                    complaintController.descriptionController.text.isEmpty) {
-                  Get.snackbar(
-                    'Incomplete Form',
-                    'Please fill all required fields',
-                    backgroundColor: Colors.red,
-                    colorText: Colors.white,
-                    snackPosition: SnackPosition.BOTTOM,
-                  );
-                  return;
-                }
-                // TODO: Call complaint controller submit method
-                await complaintController.createComplaint();
-                Get.offAll(DashBoardScreen());
-              },
-              child: Text('Submit Report'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                padding: EdgeInsets.symmetric(vertical: 16),
+            // Obx(
+            //   () {
+            //     bool isLocationAvailable =
+            //         locationController.currentPosition.value != null;
+            //     bool isFetchingLocation =
+            //         locationController.isFetchingLocation.value;
+            //     return ElevatedButton(
+            //       onPressed: (!isLocationAvailable || isFetchingLocation)
+            //           ? null
+            //           : () async {
+            //               // This will be handled by ComplaintController
+            //               final isLocationAvailable =
+            //                   await locationController.checkLocationServices();
+            //               if (!isLocationAvailable) {
+            //                 Get.snackbar(
+            //                   'Location Required',
+            //                   'Please enable location services to proceed',
+            //                   backgroundColor: Colors.red,
+            //                   colorText: Colors.white,
+            //                   snackPosition: SnackPosition.BOTTOM,
+            //                 );
+            //                 return;
+            //               }
+            //               final position =
+            //                   await locationController.getCurrentLocation();
+
+            //               if (position == null) {
+            //                 Get.snackbar(
+            //                   'Location Error',
+            //                   'Unable to retrieve current location',
+            //                   backgroundColor: Colors.red,
+            //                   colorText: Colors.white,
+            //                   snackPosition: SnackPosition.BOTTOM,
+            //                 );
+            //                 return;
+            //               }
+            //               if (complaintController
+            //                       .titleController.text.isEmpty ||
+            //                   complaintController
+            //                       .descriptionController.text.isEmpty) {
+            //                 Get.snackbar(
+            //                   'Incomplete Form',
+            //                   'Please fill all required fields',
+            //                   backgroundColor: Colors.red,
+            //                   colorText: Colors.white,
+            //                   snackPosition: SnackPosition.BOTTOM,
+            //                 );
+            //                 return;
+            //               }
+
+            //               await complaintController.createComplaint();
+            //               Get.offAll(DashBoardScreen());
+            //             },
+            //       style: ElevatedButton.styleFrom(
+            //         backgroundColor: Colors.black,
+            //         padding: EdgeInsets.symmetric(vertical: 16),
+            //       ),
+            //       child: isFetchingLocation
+            //           ? CircularProgressIndicator(
+            //               valueColor:
+            //                   AlwaysStoppedAnimation<Color>(Colors.white),
+            //             )
+            //           : Text('Submit Report'),
+            //     );
+            //   },
+            // )
+            Obx(
+              () => ElevatedButton(
+                onPressed: complaintController.isLoading.value
+                    ? null
+                    : () async {
+                        await complaintController.createComplaint();
+                        Get.offAll(DashBoardScreen());
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: complaintController.isLoading.value
+                    ? CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      )
+                    : Text('Submit Report'),
               ),
             ),
           ],
