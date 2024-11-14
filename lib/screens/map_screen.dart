@@ -19,10 +19,10 @@ class MapScreen extends StatelessWidget {
 
   // Custom marker colors based on status
   Color _getMarkerColor(String status) {
-    switch (status.toLowerCase()) {
+    switch (status) {
       case 'pending':
         return Colors.orange;
-      case 'in_progress':
+      case 'In Progress':
         return Colors.blue;
       case 'resolved':
         return Colors.green;

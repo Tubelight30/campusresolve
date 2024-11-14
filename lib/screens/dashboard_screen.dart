@@ -1,6 +1,7 @@
 //ignore_for_file: prefer_const_constructors
 import 'package:campusresolve/controller/complaint_controller.dart';
 import 'package:campusresolve/controller/location_controller.dart';
+import 'package:campusresolve/models/complaint.dart';
 import 'package:campusresolve/screens/complaint_details_screen.dart';
 import 'package:campusresolve/screens/complaint_form_screen.dart';
 import 'package:campusresolve/screens/map_screen.dart';
@@ -10,21 +11,38 @@ import 'package:get/get.dart';
 import 'package:campusresolve/controller/logout_controller.dart';
 import 'package:campusresolve/controller/userprofile_controller.dart';
 import 'package:campusresolve/screens/onboard_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class DashBoardScreen extends StatelessWidget {
-  DashBoardScreen({super.key});
+class DashBoardScreen extends StatefulWidget {
+  const DashBoardScreen({super.key});
+
+  @override
+  State<DashBoardScreen> createState() => _DashBoardScreenState();
+}
+
+class _DashBoardScreenState extends State<DashBoardScreen> {
   UserProfileController userProfileController =
       Get.put(UserProfileController());
+
   ComplaintController complaintController =
       Get.put(ComplaintController(), tag: 'complaint');
 
   LogoutController logoutController = Get.put(LogoutController());
+
   final locationController = Get.put(LocationController(), tag: 'location');
+  final RxString selectedFilter = 'All'.obs;
+  final List<String> filterOptions = [
+    'All',
+    'Pending',
+    'In Progress',
+    'Resolved'
+  ];
+
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
         return Colors.orange;
-      case 'in_progress':
+      case 'in progress':
         return Colors.blue;
       case 'resolved':
         return Colors.green;
@@ -37,34 +55,65 @@ class DashBoardScreen extends StatelessWidget {
     return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute}';
   }
 
+  void _showFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Filter Complaints'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: filterOptions.map((option) {
+              return RadioListTile<String>(
+                title: Text(option),
+                value: option,
+                groupValue: selectedFilter.value,
+                onChanged: (value) {
+                  selectedFilter.value = value!;
+                  Navigator.of(context).pop();
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Dashboard"),
         actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xff6F6FC8),
-            ),
-            onPressed: () async {
-              final ans = await logoutController.logout();
-              if (ans) {
-                Get.snackbar(
-                  'Logout Successful',
-                  'You have successfully logged out',
-                  backgroundColor: Colors.black,
-                  colorText: Colors.white,
-                  snackPosition: SnackPosition.BOTTOM,
-                );
-                Get.off(OnBoardScreen());
-              }
+          IconButton(
+            icon: Icon(Icons.filter_list),
+            onPressed: () {
+              _showFilterDialog();
             },
-            child: Icon(
-              Icons.logout,
-              color: Colors.white,
-            ),
           ),
+          // ElevatedButton(
+          //   style: ElevatedButton.styleFrom(
+          //     backgroundColor: Color(0xff6F6FC8),
+          //   ),
+          //   onPressed: () async {
+          //     final ans = await logoutController.logout();
+          //     if (ans) {
+          //       Get.snackbar(
+          //         'Logout Successful',
+          //         'You have successfully logged out',
+          //         backgroundColor: Colors.black,
+          //         colorText: Colors.white,
+          //         snackPosition: SnackPosition.BOTTOM,
+          //       );
+          //       Get.off(OnBoardScreen());
+          //     }
+          //   },
+          //   child: Icon(
+          //     Icons.logout,
+          //     color: Colors.white,
+          //   ),
+          // ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -96,11 +145,38 @@ class DashBoardScreen extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: Icon(Icons.report),
+              leading: Icon(Icons.maps_home_work_outlined),
               title: Text('Map View'),
               onTap: () {
                 Navigator.pop(context); // Close the drawer
                 Get.to(() => MapScreen());
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.help),
+              title: Text('Need Help?'),
+              onTap: () {
+                launchUrl(
+                  Uri.parse("https://v-buddy.streamlit.app/"),
+                  mode: LaunchMode.inAppBrowserView,
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.logout),
+              title: Text('Logout'),
+              onTap: () async {
+                final ans = await logoutController.logout();
+                if (ans) {
+                  Get.snackbar(
+                    'Logout Successful',
+                    'You have successfully logged out',
+                    backgroundColor: Colors.black,
+                    colorText: Colors.white,
+                    snackPosition: SnackPosition.BOTTOM,
+                  );
+                  Get.off(OnBoardScreen());
+                }
               },
             ),
           ],
@@ -118,10 +194,21 @@ class DashBoardScreen extends StatelessWidget {
             if (complaintController.complaints.isEmpty) {
               return Center(child: Text('No complaints yet!'));
             }
+            List<Complaint> filteredComplaints = complaintController.complaints;
+            if (selectedFilter.value != 'All') {
+              filteredComplaints = filteredComplaints.where((complaint) {
+                return complaint.status.toLowerCase() ==
+                    selectedFilter.value.toLowerCase();
+              }).toList();
+            }
+
+            if (filteredComplaints.isEmpty) {
+              return Center(child: Text('No complaints found.'));
+            }
             return ListView.builder(
-              itemCount: complaintController.complaints.length,
+              itemCount: filteredComplaints.length,
               itemBuilder: (context, index) {
-                final complaint = complaintController.complaints[index];
+                final complaint = filteredComplaints[index];
                 return Card(
                   margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Column(
