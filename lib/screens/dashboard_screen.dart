@@ -188,7 +188,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
           () {
             if (complaintController.isLoading.value) {
               return Center(
-                child: CircularProgressIndicator(),
+                child: Text("Loading..."),
               );
             }
             if (complaintController.complaints.isEmpty) {

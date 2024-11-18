@@ -14,16 +14,35 @@ class LoginScreen extends StatelessWidget {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          TextField(
-            controller: loginController.rollNoController,
-            decoration: InputDecoration(
-              hintText: "Roll No",
+          Container(
+            margin: EdgeInsets.all(10),
+            padding: EdgeInsets.only(left: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Color(0xffFFFDFA),
+            ),
+            child: TextField(
+              controller: loginController.rollNoController,
+              decoration: InputDecoration(
+                hintText: "Roll No",
+                border: InputBorder.none,
+              ),
             ),
           ),
-          TextField(
-            controller: loginController.passwordController,
-            decoration: InputDecoration(
-              hintText: "Password",
+          Container(
+            margin: EdgeInsets.all(10),
+            padding: EdgeInsets.only(left: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Color(0xffFFFDFA),
+            ),
+            child: TextField(
+              controller: loginController.passwordController,
+              decoration: InputDecoration(
+                hintText: "Password",
+                border: InputBorder.none,
+              ),
+              obscureText: true,
             ),
           ),
           ElevatedButton(

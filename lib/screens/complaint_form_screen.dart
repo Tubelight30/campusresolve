@@ -27,7 +27,7 @@ class ComplaintFormScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Report Problem'),
-        backgroundColor: Colors.black,
+        // backgroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),

@@ -35,7 +35,10 @@ class MapScreen extends StatelessWidget {
   Future<void> _openInMaps(double lat, double lng) async {
     final url = 'https://www.openstreetmap.org/?mlat=$lat&mlon=$lng&zoom=18';
     if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.inAppWebView);
+      await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalNonBrowserApplication,
+      );
     } else {
       Get.snackbar(
         'Error',
@@ -73,14 +76,20 @@ class MapScreen extends StatelessWidget {
                   ),
                 )
                 .toList();
+        print(complaintController.complaints.length);
+        print(complaintController.complaints[0].title);
         final List<Marker> markers =
             complaintController.complaints.map((complaint) {
           // Convert string coordinates to doubles
-          final double lat = double.tryParse(complaint.latitude.toString()) ??
-              VIT_LOCATION.latitude;
-          final double lng = double.tryParse(complaint.longitude.toString()) ??
-              VIT_LOCATION.longitude;
-
+          final double lat = complaint.latitude;
+          final double lng = complaint.longitude;
+          print(complaint.rollNo +
+              "" +
+              complaint.title +
+              "" +
+              lat.toString() +
+              " " +
+              lng.toString());
           return Marker(
             point: LatLng(lat, lng),
             width: 40,

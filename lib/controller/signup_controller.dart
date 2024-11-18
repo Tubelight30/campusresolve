@@ -98,11 +98,11 @@ class SignUpController extends GetxController {
   TextEditingController rollNoController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
-  bool isLoading = false;
+  RxBool isLoading = false.obs;
 
   Future<bool> signup() async {
     final prefs = await SharedPreferences.getInstance();
-    isLoading = true;
+    isLoading.value = true;
     update();
 
     try {
@@ -136,7 +136,7 @@ class SignUpController extends GetxController {
       );
       return false;
     } finally {
-      isLoading = false;
+      isLoading.value = false;
       update();
     }
   }
